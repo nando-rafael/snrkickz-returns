@@ -44,9 +44,18 @@ function normalize(str) {
   return String(str || "").trim().toLowerCase().replace(/\s+/g, "");
 }
 
-function normalizeOrderNumber(raw) {
-  const trimmed = String(raw).trim();
-  return trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
+async function findOrder(rawOrderNumber) {
+  const trimmed = String(rawOrderNumber).trim().replace(/^#/, "");
+  // Try a few query variants — Shopify's search syntax treats "#" as a
+  // special character, so which form matches can vary.
+  const attempts = [`name:#${trimmed}`, `name:${trimmed}`, `name:"#${trimmed}"`];
+
+  for (const query of attempts) {
+    const data = await shopifyGraphQL(ORDER_QUERY, { query });
+    const edge = data.orders.edges[0];
+    if (edge) return edge.node;
+  }
+  return null;
 }
 
 export async function POST(req) {
@@ -60,15 +69,11 @@ export async function POST(req) {
       );
     }
 
-    const name = normalizeOrderNumber(orderNumber);
-    const data = await shopifyGraphQL(ORDER_QUERY, { query: `name:${JSON.stringify(name)}` });
-    const edge = data.orders.edges[0];
+    const order = await findOrder(orderNumber);
 
-    if (!edge) {
+    if (!order) {
       return NextResponse.json({ error: "Geen order gevonden met dit ordernummer." }, { status: 404 });
     }
-
-    const order = edge.node;
     const addressLastName = order.shippingAddress?.lastName || order.customer?.lastName || "";
     const addressZip = order.shippingAddress?.zip || "";
 
@@ -103,9 +108,7 @@ export async function POST(req) {
       lineItems,
     });
   } catch (err) {
-    const errorMsg = `DEBUG: ${err.message || String(err)}`;
-    console.error(errorMsg);
-    return NextResponse.json({ error: errorMsg }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: "DEBUG: " + (err.message || String(err)) }, { status: 500 });
   }
 }
-
