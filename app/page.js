@@ -37,8 +37,8 @@ export default function Home() {
   const [ticket, setTicket] = useState(null);
 
   const selectedItems = order?.lineItems.filter((li) => selectedItemIds.includes(li.id)) || [];
-  const originalTotal = selectedItems.reduce((s, i) => s + parseFloat(i.unitPrice) * i.quantity, 0);
-  const refundableAmount = Math.max(originalTotal - config.RETURN_FEE, 0);
+  const paidAmount = selectedItems.reduce((s, i) => s + parseFloat(i.unitPrice) * i.quantity, 0);
+  const refundableAmount = Math.max(paidAmount - config.RETURN_FEE, 0);
 
   async function handleLookup(e) {
     e.preventDefault();
@@ -379,3 +379,4 @@ export default function Home() {
     </div>
   );
 }
+

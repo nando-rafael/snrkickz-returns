@@ -27,6 +27,7 @@ const ORDER_QUERY = `
                   product { id title }
                 }
                 originalUnitPriceSet { shopMoney { amount currencyCode } }
+                discountedUnitPriceSet { shopMoney { amount currencyCode } }
               }
             }
           }
@@ -87,17 +88,19 @@ export async function POST(req) {
       );
     }
 
-    const lineItems = order.lineItems.edges.map((e) => ({
-      id: e.node.id,
-      title: e.node.title,
-      quantity: e.node.quantity,
-      image: e.node.image?.url || null,
-      variantId: e.node.variant?.id || null,
-      variantTitle: e.node.variant?.title || null,
-      productId: e.node.variant?.product?.id || null,
-      unitPrice: e.node.originalUnitPriceSet?.shopMoney?.amount || e.node.variant?.price || "0.00",
-      currency: e.node.originalUnitPriceSet?.shopMoney?.currencyCode || "EUR",
-    }));
+    const lineItems = order.lineItems.edges.map((e) => (
+      {
+        id: e.node.id,
+        title: e.node.title,
+        quantity: e.node.quantity,
+        image: e.node.image?.url || null,
+        variantId: e.node.variant?.id || null,
+        variantTitle: e.node.variant?.title || null,
+        productId: e.node.variant?.product?.id || null,
+        unitPrice: e.node.discountedUnitPriceSet?.shopMoney?.amount || e.node.originalUnitPriceSet?.shopMoney?.amount || e.node.variant?.price || "0.00",
+        currency: e.node.discountedUnitPriceSet?.shopMoney?.currencyCode || e.node.originalUnitPriceSet?.shopMoney?.currencyCode || "EUR",
+      }
+    ));
 
     return NextResponse.json({
       orderId: order.id,
@@ -112,3 +115,4 @@ export async function POST(req) {
     return NextResponse.json({ error: "DEBUG: " + (err.message || String(err)) }, { status: 500 });
   }
 }
+

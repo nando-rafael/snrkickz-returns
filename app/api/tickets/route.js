@@ -70,11 +70,11 @@ export async function POST(req) {
       );
     }
 
-    const originalTotal = items.reduce(
+    const paidAmount = items.reduce(
       (sum, item) => sum + parseFloat(item.unitPrice) * item.quantity,
       0
     );
-    const refundableAmount = Math.max(originalTotal - config.RETURN_FEE, 0);
+    const refundableAmount = Math.max(paidAmount - config.RETURN_FEE, 0);
 
     let exchangeDetails = null;
     if (resolution === config.RESOLUTIONS.EXCHANGE) {
@@ -121,7 +121,7 @@ export async function POST(req) {
       items,
       reason,
       resolution,
-      originalTotal: Math.round(originalTotal * 100) / 100,
+      paidAmount: Math.round(paidAmount * 100) / 100,
       refundableAmount: Math.round(refundableAmount * 100) / 100,
       returnFee: config.RETURN_FEE,
       exchange: exchangeDetails,
