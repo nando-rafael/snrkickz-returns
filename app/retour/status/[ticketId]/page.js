@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 const STATUS_LABELS = {
   pending: "In behandeling",
+  paid: "Betaald - wacht op verwerking",
   approved: "Goedgekeurd",
   awaiting_payment: "Wacht op betaling verschil",
   processed: "Verwerkt",
@@ -44,14 +45,29 @@ export default function TicketStatus({ params }) {
         {ticket.resolution === "exchange" && ticket.exchange && (
           <li>Ruilartikel: {ticket.exchange.variantTitle}</li>
         )}
-        {ticket.invoiceUrl && (
-          <li>
-            <a href={ticket.invoiceUrl} className="underline font-medium" target="_blank" rel="noreferrer">
-              Betaal het verschil →
-            </a>
-          </li>
-        )}
       </ul>
+
+      {/* Payment link for refunds that haven't been paid yet */}
+      {ticket.resolution === "refund" && ticket.status === "pending" && (
+        <div className="mt-4 pt-4 border-t">
+          <a
+            href={`/payment/${ticket.id}`}
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+          >
+            Betaal retourkosten →
+          </a>
+        </div>
+      )}
+
+      {/* Payment link for exchanges with price difference */}
+      {ticket.invoiceUrl && (
+        <li>
+          <a href={ticket.invoiceUrl} className="underline font-medium" target="_blank" rel="noreferrer">
+            Betaal het verschil →
+          </a>
+        </li>
+      )}
     </div>
   );
 }
+
