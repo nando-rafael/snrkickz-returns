@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { listTickets } from "../../../../lib/db";
+import { listTickets } from "../../../../lib/store";
 
 export async function GET() {
   try {
     console.log("[ADMIN] GET /api/admin/tickets - Fetching all tickets");
-    const tickets = await listTickets();
+    const tickets = listTickets();
     console.log("[ADMIN] Returning", tickets.length, "tickets");
     return NextResponse.json({ tickets });
   } catch (err) {

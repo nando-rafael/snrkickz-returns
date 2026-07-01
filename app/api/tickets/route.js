@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import config from "../../../lib/config";
-import { createTicket, generateTicketId } from "../../../lib/db";
+import { createTicket, generateTicketId } from "../../../lib/store";
 import { sendReturnConfirmation } from "../../../lib/email";
 import { shopifyGraphQL } from "../../../lib/shopify";
 
@@ -131,7 +131,7 @@ export async function POST(req) {
     };
 
     console.log("[API] Saving ticket to database");
-    const savedTicket = await createTicket(ticket);
+    const savedTicket = createTicket(ticket);
     console.log("[API] Ticket saved successfully:", savedTicket.id);
 
     console.log("[API] Sending confirmation email");
