@@ -67,7 +67,7 @@ export default function PaymentPage({ params }) {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span>Ordernummer:</span>
-              <strong>{ticket.orderId}</strong>
+              <strong>{ticket.orderName}</strong>
             </div>
             <div className="flex justify-between">
               <span>Retournummer:</span>
@@ -78,8 +78,8 @@ export default function PaymentPage({ params }) {
               <span>{ticket.reason}</span>
             </div>
             <div className="flex justify-between border-t pt-2 mt-2">
-              <span>Origineel bedrag:</span>
-              <strong>€{ticket.originalTotal.toFixed(2)}</strong>
+              <span>Betaald bedrag:</span>
+              <strong>€{ticket.paidAmount.toFixed(2)}</strong>
             </div>
             <div className="flex justify-between">
               <span>Retourkosten:</span>
@@ -115,7 +115,7 @@ export default function PaymentPage({ params }) {
               Vermeld in het betalingskenmerk (referentie):
             </p>
             <p className="font-mono text-sm bg-white p-2 rounded border border-yellow-300">
-              {ticket.orderId} {ticket.id}
+              {ticket.orderName} {ticket.id}
             </p>
             <p className="text-xs text-yellow-700 mt-2">
               Bijvoorbeeld: "ORDER123 RET-ABC123"
