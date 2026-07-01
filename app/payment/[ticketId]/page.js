@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import config from "../../../lib/config";
 
@@ -13,7 +13,7 @@ export default function PaymentPage({ params }) {
   const [confirming, setConfirming] = useState(false);
 
   // Fetch ticket details
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchTicket() {
       try {
         const res = await fetch(`/api/tickets/${ticketId}`);
