@@ -103,7 +103,9 @@ export async function POST(req) {
       lineItems,
     });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Er ging iets mis. Probeer het later opnieuw." }, { status: 500 });
+    const errorMsg = `DEBUG: ${err.message || String(err)}`;
+    console.error(errorMsg);
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
+
