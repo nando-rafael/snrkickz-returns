@@ -12,6 +12,17 @@ const STATUS_LABELS = {
   cancelled: { label: 'Geannuleerd', cls: 'tag-rejected' },
 };
 
+function formatDate(isoString) {
+  const date = new Date(isoString);
+  return new Intl.DateTimeFormat('nl-NL', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
 export default function AdminPage() {
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,6 +147,7 @@ export default function AdminPage() {
               <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>ID</th>
               <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Order</th>
               <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Reden</th>
+              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Aangemeld op</th>
               <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Status</th>
               <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Tracking</th>
               <th style={{ textAlign: 'right', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Acties</th>
@@ -149,6 +161,7 @@ export default function AdminPage() {
                   <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.id}</td>
                   <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.orderName}</td>
                   <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.reason}</td>
+                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12, color: '#666' }}>{formatDate(r.createdAt)}</td>
                   <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>
                     <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: statusInfo.cls === 'tag-pending' ? '#fff3d6' : statusInfo.cls === 'tag-approved' ? '#e9f5ee' : statusInfo.cls === 'tag-rejected' ? '#fbeae9' : '#eef1f6', color: '#333' }}>
                       {statusInfo.label}
