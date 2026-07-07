@@ -87,9 +87,9 @@ export default function TicketStatus({ params }) {
       <ul className="text-sm flex flex-col gap-1 mt-3">
         <li>Order: {ticket.orderName}</li>
         {ticket.resolution === "refund" && (
-          <li>Resolutie: Volledige terugbetaling — je verstuurt het item op eigen kosten</li>
+          <li>Resolutie: Terugbetalen (Retourneren op eigen kosten)</li>
         )}
-        {ticket.resolution === "refund" && <li>Bedrag: €{ticket.refundableAmount.toFixed(2)}</li>}
+        {ticket.resolution === "refund" && <li>Bedrag: Volledige terugbetaling</li>}
         {ticket.resolution === "exchange" && ticket.exchange && (
           <>
             <li>Resolutie: Ruilen</li>
@@ -122,13 +122,21 @@ export default function TicketStatus({ params }) {
       <div className="mt-6 pt-6 border-t">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
           <h3 className="font-semibold text-sm mb-3">Voorwaarden voor retour:</h3>
-          <ul className="text-xs space-y-2 text-gray-700">
-            <li>• Stuur je retour op met een Track & Trace dienst naar keuze (PostNL, DHL, DPD, etc.)</li>
-            <li>• Bewaar je verzendbewijs totdat je refund is verwerkt</li>
-            <li>• Verzend altijd met Track & Trace — bij verloren pakketten zonder tracking kunnen wij geen refund verwerken</li>
-            <li>• Snrkickz is niet verantwoordelijk voor verloren of beschadigde pakketten tijdens het retourvervoer</li>
-            <li>• Verzeker je zending indien nodig — niet-verzekerde pakketten vallen buiten onze verantwoordelijkheid</li>
+          <ul className="text-xs space-y-2 text-gray-700 mb-4">
+            <li>• Stuur je retour met een Track & Trace-dienst naar keuze (bijvoorbeeld PostNL, DHL of DPD).</li>
+            <li>• Bewaar het verzendbewijs en de Track & Trace-code totdat je terugbetaling volledig is verwerkt.</li>
+            <li>• Verzeker je retourzending. Bij verlies of beschadiging tijdens het retourtransport is de vervoerder verantwoordelijk. Snrkickz is niet aansprakelijk voor niet-afgeleverde of beschadigde retourzendingen.</li>
           </ul>
+          
+          <div className="pt-4 border-t border-yellow-200">
+            <h4 className="font-semibold text-xs mb-2">Retouradres:</h4>
+            <div className="text-xs space-y-1 text-gray-700">
+              <p>Snrkickz</p>
+              <p>Impuls 28</p>
+              <p>1446 WX Purmerend</p>
+              <p>Noord-Holland, Nederland</p>
+            </div>
+          </div>
         </div>
 
         {hasTracking ? (
