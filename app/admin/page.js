@@ -141,70 +141,172 @@ export default function AdminPage() {
       ) : returns.length === 0 ? (
         <p style={{ color: '#4a4f59' }}>Nog geen retouren binnen.</p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>ID</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Order</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Reden</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Resolutie</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Ruilartikel</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Prijsverschil</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Aangemeld op</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Status</th>
-                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Tracking</th>
-                <th style={{ textAlign: 'right', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Acties</th>
-              </tr>
-            </thead>
-            <tbody>
-              {returns.map((r) => {
-                const statusInfo = STATUS_LABELS[r.status] || STATUS_LABELS.pending;
-                const priceDifference = r.exchange && r.exchange.priceDifference ? r.exchange.priceDifference : null;
-                return (
-                  <tr key={r.id}>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.id}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.orderName}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>{r.reason}</td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>
-                      {r.resolution === 'refund' ? 'Terugbetaling' : 'Ruilen'}
-                    </td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>
-                      {r.exchange && r.exchange.variantTitle ? r.exchange.variantTitle : '—'}
-                    </td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>
-                      {priceDifference ? `€${priceDifference.toFixed(2)}` : '—'}
-                    </td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 11, color: '#666' }}>
-                      {formatDate(r.createdAt)}
-                    </td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: statusInfo.cls === 'tag-pending' ? '#fff3d6' : statusInfo.cls === 'tag-approved' ? '#e9f5ee' : statusInfo.cls === 'tag-rejected' ? '#fbeae9' : '#eef1f6', color: '#333' }}>
-                        {statusInfo.label}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>
-                      {r.trackingNumber || '—'}
-                    </td>
-                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', textAlign: 'right' }}>
-                      {r.status === 'pending' && (
-                        <>
-                          <button onClick={() => setStatus(r.id, 'approved')} style={{ marginRight: 6, padding: '6px 10px', cursor: 'pointer', fontSize: 11 }}>Goedkeuren</button>
-                          <button onClick={() => setStatus(r.id, 'rejected')} style={{ padding: '6px 10px', cursor: 'pointer', fontSize: 11 }}>Afwijzen</button>
-                        </>
-                      )}
-                      {(r.status === 'approved' || r.status === 'shipped') && (
-                        <button onClick={() => setStatus(r.id, 'received')} style={{ padding: '6px 10px', cursor: 'pointer', fontSize: 11 }}>Markeer ontvangen</button>
-                      )}
-                      {r.status === 'received' && (
-                        <button onClick={() => triggerRefund(r.id)} style={{ padding: '6px 10px', cursor: 'pointer', background: '#0b1f3a', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11 }}>Refund verwerken</button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 16 }}>
+          {returns.map((r) => {
+            const statusInfo = STATUS_LABELS[r.status] || STATUS_LABELS.pending;
+            const priceDifference = r.exchange && r.exchange.priceDifference ? r.exchange.priceDifference : null;
+            
+            return (
+              <div
+                key={r.id}
+                style={{
+                  border: '1px solid #e3e3e0',
+                  borderRadius: 8,
+                  padding: 16,
+                  backgroundColor: '#fff',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                }}
+              >
+                {/* ID - Bold, Large */}
+                <p style={{ fontSize: 18, fontWeight: 700, fontFamily: 'monospace', marginBottom: 12, color: '#0b1f3a' }}>
+                  {r.id}
+                </p>
+
+                {/* Status Badge */}
+                <div style={{ marginBottom: 12 }}>
+                  <span
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: 999,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      background:
+                        statusInfo.cls === 'tag-pending'
+                          ? '#fff3d6'
+                          : statusInfo.cls === 'tag-approved'
+                          ? '#e9f5ee'
+                          : statusInfo.cls === 'tag-rejected'
+                          ? '#fbeae9'
+                          : '#eef1f6',
+                      color: '#333',
+                    }}
+                  >
+                    {statusInfo.label}
+                  </span>
+                </div>
+
+                {/* Fields */}
+                <div style={{ fontSize: 13, lineHeight: 1.8, marginBottom: 16 }}>
+                  <div style={{ marginBottom: 8 }}>
+                    <span style={{ color: '#666', fontWeight: 500 }}>Order:</span> {r.orderName}
+                  </div>
+
+                  <div style={{ marginBottom: 8 }}>
+                    <span style={{ color: '#666', fontWeight: 500 }}>Reden:</span> {r.reason}
+                  </div>
+
+                  <div style={{ marginBottom: 8 }}>
+                    <span style={{ color: '#666', fontWeight: 500 }}>Resolutie:</span>{' '}
+                    {r.resolution === 'refund' ? 'Terugbetaling' : 'Ruilen'}
+                  </div>
+
+                  {r.exchange && r.exchange.variantTitle && (
+                    <div style={{ marginBottom: 8 }}>
+                      <span style={{ color: '#666', fontWeight: 500 }}>Ruilartikel:</span> {r.exchange.variantTitle}
+                    </div>
+                  )}
+
+                  {priceDifference && (
+                    <div style={{ marginBottom: 8 }}>
+                      <span style={{ color: '#666', fontWeight: 500 }}>Prijsverschil:</span> €{priceDifference.toFixed(2)}
+                    </div>
+                  )}
+
+                  {r.trackingNumber && (
+                    <div style={{ marginBottom: 8 }}>
+                      <span style={{ color: '#666', fontWeight: 500 }}>Tracking:</span> {r.trackingNumber}
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: 8 }}>
+                    <span style={{ color: '#666', fontWeight: 500 }}>Aangemeld op:</span> {formatDate(r.createdAt)}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {r.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => setStatus(r.id, 'approved')}
+                        style={{
+                          flex: 1,
+                          minWidth: 100,
+                          padding: '8px 12px',
+                          background: '#e9f5ee',
+                          border: '1px solid #c8e6c9',
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          fontSize: 12,
+                          fontWeight: 500,
+                          color: '#2e7d32',
+                        }}
+                      >
+                        Goedkeuren
+                      </button>
+                      <button
+                        onClick={() => setStatus(r.id, 'rejected')}
+                        style={{
+                          flex: 1,
+                          minWidth: 100,
+                          padding: '8px 12px',
+                          background: '#fbeae9',
+                          border: '1px solid #ffcdd2',
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          fontSize: 12,
+                          fontWeight: 500,
+                          color: '#c62828',
+                        }}
+                      >
+                        Afwijzen
+                      </button>
+                    </>
+                  )}
+
+                  {(r.status === 'approved' || r.status === 'shipped') && (
+                    <button
+                      onClick={() => setStatus(r.id, 'received')}
+                      style={{
+                        flex: 1,
+                        minWidth: 100,
+                        padding: '8px 12px',
+                        background: '#eef1f6',
+                        border: '1px solid #c5cae9',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: '#1a237e',
+                      }}
+                    >
+                      Markeer ontvangen
+                    </button>
+                  )}
+
+                  {r.status === 'received' && (
+                    <button
+                      onClick={() => triggerRefund(r.id)}
+                      style={{
+                        flex: 1,
+                        minWidth: 100,
+                        padding: '8px 12px',
+                        background: '#0b1f3a',
+                        border: 'none',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: '#fff',
+                      }}
+                    >
+                      Refund verwerken
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </>
