@@ -136,6 +136,17 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Return Address */}
+      <div style={{ background: '#f5f5f5', border: '1px solid #e0e0e0', borderRadius: 8, padding: 16, marginBottom: 24 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: '#0b1f3a' }}>Retouradres:</h3>
+        <div style={{ fontSize: 13, lineHeight: 1.8, color: '#333' }}>
+          <p style={{ margin: '0 0 4px 0' }}>Snrkickz</p>
+          <p style={{ margin: '0 0 4px 0' }}>Impuls 28</p>
+          <p style={{ margin: '0 0 4px 0' }}>1446 WX Purmerend</p>
+          <p style={{ margin: 0 }}>Noord-Holland, Nederland</p>
+        </div>
+      </div>
+
       {loading ? (
         <p>Laden...</p>
       ) : returns.length === 0 ? (
