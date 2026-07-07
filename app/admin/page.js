@@ -1,56 +1,130 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from 'react';
 
 const STATUS_LABELS = {
-  pending: "In behandeling",
-  approved: "Goedgekeurd",
-  awaiting_payment: "Wacht op betaling",
-  processed: "Verwerkt",
-  rejected: "Afgewezen",
+  pending: { label: 'In behandeling', cls: 'tag-pending' },
+  approved: { label: 'Goedgekeurd', cls: 'tag-approved' },
+  rejected: { label: 'Afgewezen', cls: 'tag-rejected' },
+  shipped: { label: 'Onderweg', cls: 'tag-shipped' },
+  received: { label: 'Ontvangen', cls: 'tag-received' },
+  refunded: { label: 'Terugbetaald', cls: 'tag-refunded' },
+  cancelled: { label: 'Geannuleerd', cls: 'tag-rejected' },
 };
 
-export default function AdminDashboard() {
-  const [tickets, setTickets] = useState([]);
+export default function AdminPage() {
+  const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionError, setActionError] = useState('');
 
-  useEffect(() => {
-    fetch("/api/admin/tickets")
-      .then((res) => res.json())
-      .then((body) => setTickets(body.tickets || []))
-      .finally(() => setLoading(false));
-  }, []);
+  function load() {
+    setLoading(true);
+    fetch('/api/admin/returns')
+      .then((res) => {
+        if (res.status === 401) throw new Error('Niet ingelogd — voer het admin wachtwoord in.');
+        if (res.status === 503) throw new Error('ADMIN_PASSWORD is niet ingesteld in Railway.');
+        if (!res.ok) throw new Error(`Fout: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        setReturns(data.returns || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setActionError(err.message);
+        setLoading(false);
+      });
+  }
+
+  useEffect(load, []);
+
+  async function setStatus(id, status) {
+    setActionError('');
+    const res = await fetch(`/api/admin/returns/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setActionError(data.error || 'Actie mislukt');
+      return;
+    }
+    load();
+  }
+
+  async function triggerRefund(id) {
+    setActionError('');
+    if (!confirm('Refund verwerken via Shopify, met retourkosten ingehouden?')) return;
+    const res = await fetch(`/api/admin/returns/${id}/refund`, { method: 'POST' });
+    if (!res.ok) {
+      const data = await res.json();
+      setActionError(data.error || 'Refund mislukt');
+      return;
+    }
+    load();
+  }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Retouren — admin</h1>
+    <>
+      <h1>Retouren — admin</h1>
 
-      {loading && <p className="text-subtitle">Laden...</p>}
+      {actionError && (
+        <div style={{ background: '#fbeae9', color: '#b3261e', padding: '12px 14px', borderRadius: 8, marginBottom: 16 }}>
+          {actionError}
+        </div>
+      )}
 
-      <div className="flex flex-col gap-3">
-        {tickets.map((t) => (
-          <Link
-            key={t.id}
-            href={`/admin/${t.id}`}
-            className="card flex items-center justify-between hover:shadow-md transition-shadow"
-          >
-            <div>
-              <p className="font-mono font-semibold">{t.id}</p>
-              <p className="text-sm text-subtitle">
-                {t.orderName} · {t.resolution === "refund" ? "Terugbetalen" : "Ruilen"} ·{" "}
-                {new Date(t.createdAt).toLocaleDateString("nl-NL")}
-              </p>
-            </div>
-            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-gray-100">
-              {STATUS_LABELS[t.status] || t.status}
-            </span>
-          </Link>
-        ))}
-        {!loading && tickets.length === 0 && (
-          <p className="text-subtitle">Nog geen retouren binnen.</p>
-        )}
-      </div>
-    </div>
+      {loading ? (
+        <p>Laden...</p>
+      ) : returns.length === 0 ? (
+        <p style={{ color: '#4a4f59' }}>Nog geen retouren binnen.</p>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>ID</th>
+              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Order</th>
+              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Reden</th>
+              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Status</th>
+              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Tracking</th>
+              <th style={{ textAlign: 'right', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Acties</th>
+            </tr>
+          </thead>
+          <tbody>
+            {returns.map((r) => {
+              const statusInfo = STATUS_LABELS[r.status] || STATUS_LABELS.pending;
+              return (
+                <tr key={r.id}>
+                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.id}</td>
+                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.orderName}</td>
+                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.reason}</td>
+                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>
+                    <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: statusInfo.cls === 'tag-pending' ? '#fff3d6' : statusInfo.cls === 'tag-approved' ? '#e9f5ee' : statusInfo.cls === 'tag-rejected' ? '#fbeae9' : '#eef1f6', color: '#333' }}>
+                      {statusInfo.label}
+                    </span>
+                  </td>
+                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.trackingNumber || '—'}</td>
+                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', textAlign: 'right' }}>
+                    {r.status === 'pending' && (
+                      <>
+                        <button onClick={() => setStatus(r.id, 'approved')} style={{ marginRight: 6, padding: '6px 10px', cursor: 'pointer' }}>Goedkeuren</button>
+                        <button onClick={() => setStatus(r.id, 'rejected')} style={{ padding: '6px 10px', cursor: 'pointer' }}>Afwijzen</button>
+                      </>
+                    )}
+                    {(r.status === 'approved' || r.status === 'shipped') && (
+                      <button onClick={() => setStatus(r.id, 'received')} style={{ padding: '6px 10px', cursor: 'pointer' }}>Markeer ontvangen</button>
+                    )}
+                    {r.status === 'received' && (
+                      <button onClick={() => triggerRefund(r.id)} style={{ padding: '6px 10px', cursor: 'pointer', background: '#0b1f3a', color: '#fff', border: 'none', borderRadius: 6 }}>Refund verwerken</button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+    </>
   );
 }
