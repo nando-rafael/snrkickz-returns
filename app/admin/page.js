@@ -16,10 +16,18 @@ export default function AdminPage() {
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionError, setActionError] = useState('');
+  const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  function getAuthHeader() {
+    return password ? { 'Authorization': `Bearer ${password}` } : {};
+  }
 
   function load() {
     setLoading(true);
-    fetch('/api/admin/returns')
+    fetch('/api/admin/returns', {
+      headers: getAuthHeader(),
+    })
       .then((res) => {
         if (res.status === 401) throw new Error('Niet ingelogd — voer het admin wachtwoord in.');
         if (res.status === 503) throw new Error('ADMIN_PASSWORD is niet ingesteld in Railway.');
@@ -29,20 +37,36 @@ export default function AdminPage() {
       .then((data) => {
         setReturns(data.returns || []);
         setLoading(false);
+        setIsAuthenticated(true);
       })
       .catch((err) => {
         setActionError(err.message);
         setLoading(false);
+        setIsAuthenticated(false);
       });
   }
 
-  useEffect(load, []);
+  useEffect(() => {
+    if (isAuthenticated || password) {
+      load();
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    load();
+  }
 
   async function setStatus(id, status) {
     setActionError('');
     const res = await fetch(`/api/admin/returns/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
       body: JSON.stringify({ status }),
     });
     if (!res.ok) {
@@ -56,13 +80,39 @@ export default function AdminPage() {
   async function triggerRefund(id) {
     setActionError('');
     if (!confirm('Refund verwerken via Shopify, met retourkosten ingehouden?')) return;
-    const res = await fetch(`/api/admin/returns/${id}/refund`, { method: 'POST' });
+    const res = await fetch(`/api/admin/returns/${id}/refund`, { 
+      method: 'POST',
+      headers: getAuthHeader(),
+    });
     if (!res.ok) {
       const data = await res.json();
       setActionError(data.error || 'Refund mislukt');
       return;
     }
     load();
+  }
+
+  if (!isAuthenticated && !loading) {
+    return (
+      <>
+        <h1>Admin — Inloggen</h1>
+        <form onSubmit={handleLogin} style={{ maxWidth: 300 }}>
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ display: 'block', marginBottom: 6, fontWeight: 500 }}>Admin wachtwoord</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 4 }}
+              placeholder="Voer wachtwoord in"
+            />
+          </div>
+          <button type="submit" style={{ padding: '8px 16px', background: '#0b1f3a', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+            Inloggen
+          </button>
+        </form>
+      </>
+    );
   }
 
   return (
@@ -128,3 +178,4 @@ export default function AdminPage() {
     </>
   );
 }
+
