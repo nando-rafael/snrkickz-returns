@@ -12,6 +12,17 @@ const STATUS_LABELS = {
   cancelled: { label: 'Geannuleerd', cls: 'tag-rejected' },
 };
 
+function formatDate(isoString) {
+  const date = new Date(isoString);
+  return new Intl.DateTimeFormat('nl-NL', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
 export default function AdminPage() {
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,50 +141,71 @@ export default function AdminPage() {
       ) : returns.length === 0 ? (
         <p style={{ color: '#4a4f59' }}>Nog geen retouren binnen.</p>
       ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>ID</th>
-              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Order</th>
-              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Reden</th>
-              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Status</th>
-              <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Tracking</th>
-              <th style={{ textAlign: 'right', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Acties</th>
-            </tr>
-          </thead>
-          <tbody>
-            {returns.map((r) => {
-              const statusInfo = STATUS_LABELS[r.status] || STATUS_LABELS.pending;
-              return (
-                <tr key={r.id}>
-                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.id}</td>
-                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.orderName}</td>
-                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.reason}</td>
-                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>
-                    <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 700, background: statusInfo.cls === 'tag-pending' ? '#fff3d6' : statusInfo.cls === 'tag-approved' ? '#e9f5ee' : statusInfo.cls === 'tag-rejected' ? '#fbeae9' : '#eef1f6', color: '#333' }}>
-                      {statusInfo.label}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.trackingNumber || '—'}</td>
-                  <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', textAlign: 'right' }}>
-                    {r.status === 'pending' && (
-                      <>
-                        <button onClick={() => setStatus(r.id, 'approved')} style={{ marginRight: 6, padding: '6px 10px', cursor: 'pointer' }}>Goedkeuren</button>
-                        <button onClick={() => setStatus(r.id, 'rejected')} style={{ padding: '6px 10px', cursor: 'pointer' }}>Afwijzen</button>
-                      </>
-                    )}
-                    {(r.status === 'approved' || r.status === 'shipped') && (
-                      <button onClick={() => setStatus(r.id, 'received')} style={{ padding: '6px 10px', cursor: 'pointer' }}>Markeer ontvangen</button>
-                    )}
-                    {r.status === 'received' && (
-                      <button onClick={() => triggerRefund(r.id)} style={{ padding: '6px 10px', cursor: 'pointer', background: '#0b1f3a', color: '#fff', border: 'none', borderRadius: 6 }}>Refund verwerken</button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>ID</th>
+                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Order</th>
+                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Reden</th>
+                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Resolutie</th>
+                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Ruilartikel</th>
+                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Prijsverschil</th>
+                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Aangemeld op</th>
+                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Status</th>
+                <th style={{ textAlign: 'left', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Tracking</th>
+                <th style={{ textAlign: 'right', padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>Acties</th>
+              </tr>
+            </thead>
+            <tbody>
+              {returns.map((r) => {
+                const statusInfo = STATUS_LABELS[r.status] || STATUS_LABELS.pending;
+                const priceDifference = r.exchange && r.exchange.priceDifference ? r.exchange.priceDifference : null;
+                return (
+                  <tr key={r.id}>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.id}</td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>{r.orderName}</td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>{r.reason}</td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>
+                      {r.resolution === 'refund' ? 'Terugbetaling' : 'Ruilen'}
+                    </td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>
+                      {r.exchange && r.exchange.variantTitle ? r.exchange.variantTitle : '—'}
+                    </td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>
+                      {priceDifference ? `€${priceDifference.toFixed(2)}` : '—'}
+                    </td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 11, color: '#666' }}>
+                      {formatDate(r.createdAt)}
+                    </td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0' }}>
+                      <span style={{ padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: statusInfo.cls === 'tag-pending' ? '#fff3d6' : statusInfo.cls === 'tag-approved' ? '#e9f5ee' : statusInfo.cls === 'tag-rejected' ? '#fbeae9' : '#eef1f6', color: '#333' }}>
+                        {statusInfo.label}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', fontSize: 12 }}>
+                      {r.trackingNumber || '—'}
+                    </td>
+                    <td style={{ padding: '10px 8px', borderBottom: '1px solid #e3e3e0', textAlign: 'right' }}>
+                      {r.status === 'pending' && (
+                        <>
+                          <button onClick={() => setStatus(r.id, 'approved')} style={{ marginRight: 6, padding: '6px 10px', cursor: 'pointer', fontSize: 11 }}>Goedkeuren</button>
+                          <button onClick={() => setStatus(r.id, 'rejected')} style={{ padding: '6px 10px', cursor: 'pointer', fontSize: 11 }}>Afwijzen</button>
+                        </>
+                      )}
+                      {(r.status === 'approved' || r.status === 'shipped') && (
+                        <button onClick={() => setStatus(r.id, 'received')} style={{ padding: '6px 10px', cursor: 'pointer', fontSize: 11 }}>Markeer ontvangen</button>
+                      )}
+                      {r.status === 'received' && (
+                        <button onClick={() => triggerRefund(r.id)} style={{ padding: '6px 10px', cursor: 'pointer', background: '#0b1f3a', color: '#fff', border: 'none', borderRadius: 6, fontSize: 11 }}>Refund verwerken</button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   );

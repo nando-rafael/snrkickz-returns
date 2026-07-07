@@ -71,6 +71,7 @@ export default function TicketStatus({ params }) {
   if (!ticket) return <p className="text-subtitle">Laden...</p>;
 
   const hasTracking = ticket.trackingNumber && ticket.trackingNumber.trim();
+  const hasPriceDifference = ticket.resolution === "exchange" && ticket.exchange && ticket.exchange.priceDifference && ticket.exchange.priceDifference > 0;
 
   return (
     <div className="card flex flex-col gap-3">
@@ -85,12 +86,37 @@ export default function TicketStatus({ params }) {
 
       <ul className="text-sm flex flex-col gap-1 mt-3">
         <li>Order: {ticket.orderName}</li>
-        <li>Resolutie: {ticket.resolution === "refund" ? "Terugbetalen" : "Ruilen"}</li>
+        {ticket.resolution === "refund" && (
+          <li>Resolutie: Volledige terugbetaling — je verstuurt het item op eigen kosten</li>
+        )}
         {ticket.resolution === "refund" && <li>Bedrag: €{ticket.refundableAmount.toFixed(2)}</li>}
         {ticket.resolution === "exchange" && ticket.exchange && (
-          <li>Ruilartikel: {ticket.exchange.variantTitle}</li>
+          <>
+            <li>Resolutie: Ruilen</li>
+            <li>Ruilartikel: {ticket.exchange.variantTitle}</li>
+          </>
         )}
       </ul>
+
+      {/* Price difference payment instructions for exchanges */}
+      {hasPriceDifference && (
+        <div className="mt-4 pt-4 border-t bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="font-semibold text-sm mb-3">Betaling prijsverschil</h3>
+          <div className="text-sm space-y-2">
+            <p><strong>Bedrag:</strong> €{ticket.exchange.priceDifference.toFixed(2)}</p>
+            <p><strong>Referentie:</strong> {ticket.id}</p>
+          </div>
+          <div className="mt-3 pt-3 border-t border-blue-200">
+            <p className="text-xs font-medium mb-2">Bankgegevens:</p>
+            <div className="text-xs space-y-1 font-mono bg-white p-2 rounded">
+              <p><strong>Bank:</strong> Revolut</p>
+              <p><strong>IBAN:</strong> NL72 REVO 6615 0541 67</p>
+              <p><strong>Naam:</strong> SNRKICKZ</p>
+              <p><strong>Referentie:</strong> {ticket.id}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tracking section */}
       <div className="mt-6 pt-6 border-t">
