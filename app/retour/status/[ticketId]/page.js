@@ -92,27 +92,6 @@ export default function TicketStatus({ params }) {
         )}
       </ul>
 
-      {/* Payment link for refunds that haven't been paid yet */}
-      {ticket.resolution === "refund" && ticket.status === "pending" && (
-        <div className="mt-4 pt-4 border-t">
-          <a
-            href={`/payment/${ticket.id}`}
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-          >
-            Betaal retourkosten →
-          </a>
-        </div>
-      )}
-
-      {/* Payment link for exchanges with price difference */}
-      {ticket.invoiceUrl && (
-        <li>
-          <a href={ticket.invoiceUrl} className="underline font-medium" target="_blank" rel="noreferrer">
-            Betaal het verschil →
-          </a>
-        </li>
-      )}
-
       {/* Tracking section */}
       <div className="mt-6 pt-6 border-t">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
