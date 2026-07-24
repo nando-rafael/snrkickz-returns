@@ -122,11 +122,21 @@ export default function TicketStatus({ params }) {
       <div className="mt-6 pt-6 border-t">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
           <h3 className="font-semibold text-sm mb-3">Voorwaarden voor retour:</h3>
-          <ul className="text-xs space-y-2 text-gray-700">
+          <ul className="text-xs space-y-2 text-gray-700 mb-4">
             <li>• Stuur je retour met een Track & Trace-dienst naar keuze (bijvoorbeeld PostNL, DHL of DPD).</li>
             <li>• Bewaar het verzendbewijs en de Track & Trace-code totdat je terugbetaling volledig is verwerkt.</li>
             <li>• Verzeker je retourzending. Bij verlies of beschadiging tijdens het retourtransport is de vervoerder verantwoordelijk. Snrkickz is niet aansprakelijk voor niet-afgeleverde of beschadigde retourzendingen.</li>
           </ul>
+
+          <div className="pt-4 border-t border-yellow-200">
+            <h4 className="font-semibold text-sm mb-3">Retouradres:</h4>
+            <div className="text-sm space-y-1 text-gray-700">
+              <p>Snrkickz</p>
+              <p>Impuls 28</p>
+              <p>1446 WX Purmerend</p>
+              <p>The Netherlands</p>
+            </div>
+          </div>
         </div>
 
         {hasTracking ? (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import config from "../lib/config";
 
@@ -9,10 +10,10 @@ const STEPS = {
   RESOLUTION: "resolution",
   EXCHANGE_PICK: "exchange_pick",
   REVIEW: "review",
-  DONE: "done",
 };
 
 export default function Home() {
+  const router = useRouter();
   const [step, setStep] = useState(STEPS.LOOKUP);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,8 +34,6 @@ export default function Home() {
   const [exchangeQuery, setExchangeQuery] = useState("");
   const [exchangeResults, setExchangeResults] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
-
-  const [ticket, setTicket] = useState(null);
 
   const selectedItems = order?.lineItems.filter((li) => selectedItemIds.includes(li.id)) || [];
   const paidAmount = selectedItems.reduce((s, i) => s + parseFloat(i.unitPrice) * i.quantity, 0);
@@ -119,8 +118,8 @@ export default function Home() {
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || "Er ging iets mis.");
-      setTicket(body.ticket);
-      setStep(STEPS.DONE);
+      // Redirect directly to status page instead of showing confirmation
+      router.push(`/retour/status/${body.ticket.id}`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -361,19 +360,6 @@ export default function Home() {
           <button className="btn-primary" onClick={handleSubmit} disabled={loading}>
             {loading ? "Versturen..." : "Retour bevestigen"}
           </button>
-        </div>
-      )}
-
-      {step === STEPS.DONE && ticket && (
-        <div className="card flex flex-col gap-3">
-          <p className="text-lg font-semibold">Retour aangemeld ✓</p>
-          <p className="text-sm text-subtitle">
-            Je retournummer is <span className="font-mono font-semibold">{ticket.id}</span>. We
-            beoordelen 'm zo snel mogelijk — je ontvangt een update per e-mail op {ticket.email}.
-          </p>
-          <a href={`/retour/status/${ticket.id}`} className="btn-primary text-center">
-            Bekijk status
-          </a>
         </div>
       )}
     </div>
